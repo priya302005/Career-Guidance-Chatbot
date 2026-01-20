@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Guidance Assistant</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            background-color: #0f3460;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1f4068;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .chat-icon {
+            width: 30px;
+            height: 30px;
+            background-color: #e94560;
+            border-radius: 50%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.4;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #e94560 0%, #c6364d 100%);
+            color: white;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: #1f4068;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .chat-input-container {
+            padding: 15px 20px;
+            background-color: #1a1a2e;
+            border-top: 1px solid #1f4068;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: none;
+            background-color: #1f4068;
+            color: white;
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: none;
+            background: linear-gradient(135deg, #e94560 0%, #c6364d 100%);
+            color: white;
+            cursor: pointer;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px 20px;
+            background-color: #1a1a2e;
+            border-top: 1px solid #1f4068;
+        }
+
+        .suggestion {
+            padding: 8px 15px;
+            background-color: #1f4068;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+<div class="chat-container">
+
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="chat-title">
+            <div class="chat-icon"></div>
+            <h1>Career Guidance Assistant</h1>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chat-messages">
+        <div class="welcome-message">
+            <h2 style="color:#e94560;">Welcome Students 👋</h2>
+            <p>I help 10th & 12th students choose the right career path.</p>
+        </div>
+
+        <div class="message bot-message">
+            <div>Hello! Tell me your class (10th / 12th) and your interest 😊</div>
+            <div class="message-time" id="initial-time"></div>
+        </div>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="suggestions">
+        <div class="suggestion" data-query="Career options after 10th">After 10th</div>
+        <div class="suggestion" data-query="Career options after 12th science">After 12th Science</div>
+        <div class="suggestion" data-query="Commerce stream career options">Commerce Careers</div>
+        <div class="suggestion" data-query="Entrance exams after 12th">Entrance Exams</div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-container">
+        <input type="text" class="chat-input" id="user-input"
+               placeholder="Ask about careers after 10th or 12th...">
+        <button class="send-btn" id="send-btn">Send</button>
+    </div>
+</div>
+
+<script>
+    class Chatbot {
+        constructor() {
+            this.chatMessages = document.getElementById('chat-messages');
+            this.userInput = document.getElementById('user-input');
+            this.sendBtn = document.getElementById('send-btn');
+            this.suggestions = document.querySelectorAll('.suggestion');
+            this.setInitialTime();
+            this.addEvents();
+        }
+
+        setInitialTime() {
+            document.getElementById('initial-time').textContent = this.getTime();
+        }
+
+        addEvents() {
+            this.sendBtn.onclick = () => this.sendMessage();
+            this.userInput.onkeypress = (e) => {
+                if (e.key === 'Enter') this.sendMessage();
+            };
+
+            this.suggestions.forEach(s => {
+                s.onclick = () => {
+                    this.userInput.value = s.dataset.query;
+                    this.sendMessage();
+                };
+            });
+        }
+
+        async sendMessage() {
+            const text = this.userInput.value.trim();
+            if (!text) return;
+
+            this.addMessage(text, 'user');
+            this.userInput.value = '';
+
+            const res = await fetch('/send_message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await res.json();
+            this.addMessage(data.response, 'bot');
+        }
+
+        addMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}-message`;
+
+            const content = document.createElement('div');
+            content.innerHTML = text.replace(/\n/g, '<br>');
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = this.getTime();
+
+            msg.appendChild(content);
+            msg.appendChild(time);
+            this.chatMessages.appendChild(msg);
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        }
+
+        getTime() {
+            const d = new Date();
+            return d.getHours().toString().padStart(2, '0') + ':' +
+                   d.getMinutes().toString().padStart(2, '0');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new Chatbot();
+    });
+</script>
+</body>
+</html>
